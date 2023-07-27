@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
     builder_t builder(bvh);
     builder.build(global_bbox, bboxes.get(), centers.get(), triangles.size());
 
-    std::vector<float> len_x, len_y, len_z;
+    std::vector<float> plane_x, plane_y, plane_z;
     std::vector<uint32_t> depths;
     std::queue<std::pair<size_t, uint32_t>> queue;
     queue.emplace(0, 0);
@@ -54,9 +54,13 @@ int main(int argc, char *argv[]) {
         node_t &curr_node = bvh.nodes[curr_idx];
         queue.pop();
 
-        len_x.push_back(curr_node.bounds[1] - curr_node.bounds[0]);
-        len_y.push_back(curr_node.bounds[3] - curr_node.bounds[2]);
-        len_z.push_back(curr_node.bounds[5] - curr_node.bounds[4]);
+        plane_x.push_back(curr_node.bounds[0]);
+        plane_x.push_back(curr_node.bounds[1]);
+        plane_y.push_back(curr_node.bounds[2]);
+        plane_y.push_back(curr_node.bounds[3]);
+        plane_z.push_back(curr_node.bounds[4]);
+        plane_z.push_back(curr_node.bounds[5]);
+        depths.push_back(depth);
         depths.push_back(depth);
 
         if (!curr_node.is_leaf()) {
@@ -65,12 +69,12 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    std::ofstream len_x_file("len_x.bin", std::ios::out | std::ios::binary);
-    std::ofstream len_y_file("len_y.bin", std::ios::out | std::ios::binary);
-    std::ofstream len_z_file("len_z.bin", std::ios::out | std::ios::binary);
+    std::ofstream plane_x_file("plane_x.bin", std::ios::out | std::ios::binary);
+    std::ofstream plane_y_file("plane_y.bin", std::ios::out | std::ios::binary);
+    std::ofstream plane_z_file("plane_z.bin", std::ios::out | std::ios::binary);
     std::ofstream depths_file("depths.bin", std::ios::out | std::ios::binary);
-    len_x_file.write((char*)(len_x.data()), len_x.size() * sizeof(float));
-    len_y_file.write((char*)(len_y.data()), len_y.size() * sizeof(float));
-    len_z_file.write((char*)(len_z.data()), len_z.size() * sizeof(float));
+    plane_x_file.write((char*)(plane_x.data()), plane_x.size() * sizeof(float));
+    plane_y_file.write((char*)(plane_y.data()), plane_y.size() * sizeof(float));
+    plane_z_file.write((char*)(plane_z.data()), plane_z.size() * sizeof(float));
     depths_file.write((char*)(depths.data()), depths.size() * sizeof(uint32_t));
 }
