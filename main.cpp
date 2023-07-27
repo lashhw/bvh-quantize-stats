@@ -45,11 +45,11 @@ int main(int argc, char *argv[]) {
     builder.build(global_bbox, bboxes.get(), centers.get(), triangles.size());
 
     std::vector<float> len_x, len_y, len_z;
-    std::queue<std::pair<size_t, int>> queue;
+    std::vector<uint32_t> depths;
+    std::queue<std::pair<size_t, uint32_t>> queue;
     queue.emplace(0, 0);
     while (!queue.empty()) {
         auto [curr_idx, depth] = queue.front();
-        if (depth > 5) break;
 
         node_t &curr_node = bvh.nodes[curr_idx];
         queue.pop();
@@ -57,6 +57,7 @@ int main(int argc, char *argv[]) {
         len_x.push_back(curr_node.bounds[1] - curr_node.bounds[0]);
         len_y.push_back(curr_node.bounds[3] - curr_node.bounds[2]);
         len_z.push_back(curr_node.bounds[5] - curr_node.bounds[4]);
+        depths.push_back(depth);
 
         if (!curr_node.is_leaf()) {
             queue.emplace(curr_node.first_child_or_primitive, depth + 1);
@@ -67,7 +68,9 @@ int main(int argc, char *argv[]) {
     std::ofstream len_x_file("len_x.bin", std::ios::out | std::ios::binary);
     std::ofstream len_y_file("len_y.bin", std::ios::out | std::ios::binary);
     std::ofstream len_z_file("len_z.bin", std::ios::out | std::ios::binary);
+    std::ofstream depths_file("depths.bin", std::ios::out | std::ios::binary);
     len_x_file.write((char*)(len_x.data()), len_x.size() * sizeof(float));
     len_y_file.write((char*)(len_y.data()), len_y.size() * sizeof(float));
     len_z_file.write((char*)(len_z.data()), len_z.size() * sizeof(float));
+    depths_file.write((char*)(depths.data()), depths.size() * sizeof(uint32_t));
 }
